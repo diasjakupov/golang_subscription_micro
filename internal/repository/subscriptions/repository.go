@@ -1,48 +1,66 @@
 package repository
 
 import (
-	"errors"
+	"subscriptions/internal/app/connections"
 	"subscriptions/internal/data"
-	"sync"
+
+	"gorm.io/gorm"
 )
 
+// SubscriptionRepository defines the interface for subscription data operations.
 type SubscriptionRepository interface {
+	// GetActiveSubscription retrieves the active subscription for a given user.
 	GetActiveSubscription(userID string) (*data.Subscription, error)
+	// SaveSubscription creates a new subscription in the database.
+	// This operation is wrapped in a transaction.
 	SaveSubscription(sub *data.Subscription) error
+	// UpdateSubscription updates an existing subscription in the database.
+	// This operation is wrapped in a transaction.
 	UpdateSubscription(sub *data.Subscription) error
 }
 
-type MemorySubscriptionRepository struct {
-	mu            sync.RWMutex
-	subscriptions map[string]*data.Subscription // keyed by userID
+// DBSubscriptionRepository implements SubscriptionRepository using GORM.
+type DBSubscriptionRepository struct {
+	db *gorm.DB
 }
 
-func NewMemorySubscriptionRepository() *MemorySubscriptionRepository {
-	return &MemorySubscriptionRepository{
-		subscriptions: make(map[string]*data.Subscription),
+// NewDBSubscriptionRepository initializes a new repository using the provided database connection.
+func NewDBSubscriptionRepository(conn *connections.Connections) *DBSubscriptionRepository {
+	return &DBSubscriptionRepository{
+		db: conn.DB,
 	}
 }
 
-func (repo *MemorySubscriptionRepository) GetActiveSubscription(userID string) (*data.Subscription, error) {
-	repo.mu.RLock()
-	defer repo.mu.RUnlock()
-	sub, exists := repo.subscriptions[userID]
-	if !exists || sub.Status != "active" {
-		return nil, errors.New("active subscription not found")
+// GetActiveSubscription retrieves a user's active subscription by filtering on user_id and "active" status.
+func (repo *DBSubscriptionRepository) GetActiveSubscription(userID string) (*data.Subscription, error) {
+	var sub data.Subscription
+	// Perform a query to find the subscription that is active for the specified user.
+	err := repo.db.Where("user_id = ? AND status = ?", userID, "active").First(&sub).Error
+	if err != nil {
+		return nil, err
 	}
-	return sub, nil
+	return &sub, nil
 }
 
-func (repo *MemorySubscriptionRepository) SaveSubscription(sub *data.Subscription) error {
-	repo.mu.Lock()
-	defer repo.mu.Unlock()
-	repo.subscriptions[sub.UserID] = sub
-	return nil
+// SaveSubscription creates a new subscription record in the database within a transaction.
+func (repo *DBSubscriptionRepository) SaveSubscription(sub *data.Subscription) error {
+	return repo.db.Transaction(func(tx *gorm.DB) error {
+		// Create the new subscription record.
+		if err := tx.Create(sub).Error; err != nil {
+			return err
+		}
+		// Additional steps could be added here if necessary.
+		return nil
+	})
 }
 
-func (repo *MemorySubscriptionRepository) UpdateSubscription(sub *data.Subscription) error {
-	repo.mu.Lock()
-	defer repo.mu.Unlock()
-	repo.subscriptions[sub.UserID] = sub
-	return nil
+// UpdateSubscription updates an existing subscription record in the database within a transaction.
+func (repo *DBSubscriptionRepository) UpdateSubscription(sub *data.Subscription) error {
+	return repo.db.Transaction(func(tx *gorm.DB) error {
+		// Save will perform an update if the record already exists.
+		if err := tx.Save(sub).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }

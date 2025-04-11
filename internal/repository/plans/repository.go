@@ -1,60 +1,47 @@
 package plans
 
 import (
+	"subscriptions/internal/app/connections"
 	"subscriptions/internal/data"
-	"time"
+
+	"gorm.io/gorm"
 )
 
+// PlanRepository defines the interface for subscription plan data operations.
 type PlanRepository interface {
 	GetAllPlans() ([]data.SubscriptionPlan, error)
+	GetPlanByID(id string) (*data.SubscriptionPlan, error)
 }
 
-// MemoryPlanRepository is an in-memory implementation with mock data.
-type MemoryPlanRepository struct {
-	plans []data.SubscriptionPlan
+// DBPlanRepository implements PlanRepository using a GORM database connection.
+type DBPlanRepository struct {
+	db *gorm.DB
 }
 
-func NewMemoryPlanRepository() *MemoryPlanRepository {
-	now := time.Now()
-	return &MemoryPlanRepository{
-		plans: []data.SubscriptionPlan{
-			{
-				ID:           "plan_monthly",
-				Name:         "Monthly Plan",
-				Description:  "Access to basic features on a monthly basis.",
-				Price:        9.99,
-				BillingCycle: "monthly",
-				DurationDays: 30,
-				IsActive:     true,
-				CreatedAt:    now,
-				UpdatedAt:    now,
-			},
-			{
-				ID:           "plan_quarterly",
-				Name:         "Quarterly Plan",
-				Description:  "Access to basic features on a quarterly basis.",
-				Price:        27.99,
-				BillingCycle: "quarterly",
-				DurationDays: 90,
-				IsActive:     true,
-				CreatedAt:    now,
-				UpdatedAt:    now,
-			},
-			{
-				ID:           "plan_yearly",
-				Name:         "Yearly Plan",
-				Description:  "Access to basic features on a yearly basis.",
-				Price:        99.99,
-				BillingCycle: "yearly",
-				DurationDays: 365,
-				IsActive:     true,
-				CreatedAt:    now,
-				UpdatedAt:    now,
-			},
-		},
+// NewDBPlanRepository initializes a new repository using a real database connection from the connections package.
+func NewDBPlanRepository(conn *connections.Connections) *DBPlanRepository {
+	return &DBPlanRepository{
+		db: conn.DB,
 	}
 }
 
-func (repo *MemoryPlanRepository) GetAllPlans() ([]data.SubscriptionPlan, error) {
-	return repo.plans, nil
+// GetAllPlans retrieves all available subscription plans from the database.
+func (repo *DBPlanRepository) GetAllPlans() ([]data.SubscriptionPlan, error) {
+	var plans []data.SubscriptionPlan
+	result := repo.db.Find(&plans)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return plans, nil
+}
+
+// GetPlanByID retrieves a subscription plan with the specified id from the database.
+// It returns an error if no plan is found.
+func (repo *DBPlanRepository) GetPlanByID(id string) (*data.SubscriptionPlan, error) {
+	var plan data.SubscriptionPlan
+	result := repo.db.First(&plan, "id = ?", id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &plan, nil
 }
