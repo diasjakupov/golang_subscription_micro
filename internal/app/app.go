@@ -7,8 +7,8 @@ import (
 	"subscriptions/internal/app/start"
 )
 
-func Run(configFiles ...string) {
-	cfg, err := config.NewConfig(configFiles...)
+func Run() {
+	cfg, err := config.NewConfig()
 	if err != nil {
 		fmt.Printf("error during config setup")
 	}

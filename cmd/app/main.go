@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	app.Run("/Users/diasjakupov/Desktop/study/golang/final/cmd/app/.env")
+	app.Run()
 }

@@ -28,11 +28,9 @@ type DBConfig struct {
 	SSLMode  string
 }
 
-func NewConfig(filenames ...string) (*Config, error) {
-	if len(filenames) > 0 {
-		if err := godotenv.Load(filenames...); err != nil {
-			fmt.Println("Warning: не удалось загрузить .env файл(ы):", err)
-		}
+func NewConfig() (*Config, error) {
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Warning: не удалось загрузить .env файл(ы):", err)
 	}
 
 	conf := &Config{}
