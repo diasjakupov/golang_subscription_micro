@@ -32,44 +32,6 @@ Queue-->>API: Send welcome email
 @enduml
 
 
-/***********/
-@startuml
-title Subscribe Request Flow (Existing Subscriber)
-
-actor HTTP
-participant API as "API Gateway"
-participant Payment as "PaymentService"
-participant Subscription as "SubscriptionService"
-participant Queue as "Message Queue"
-
-HTTP->>API: Send Subscribe Request
-note over API: Validate request & authenticate
-
-API->>Subscription: Check if Subscriber Exists
-Subscription-->>API: Exists
-
-API->>Subscription: Check for Active Subscription
-Subscription-->>API: No Active Subscription
-
-API->>Payment: Process Payment
-alt Payment failed
-    Payment-->>API: Payment failed
-    API-->>HTTP: 400 Bad Request (payment issue)
-    note over HTTP, API: Early termination
-end
-
-Payment-->>Subscription: Create Subscription
-Subscription-->>API: Subscription Created
-
-Subscription->>Queue: Publish SubscriptionCreatedEvent
-
-API-->>HTTP: 201 Created (subscription details)
-
-Queue-->>API: Send welcome email  
-
-@enduml
-
-
 
 /*************/
 @startuml
