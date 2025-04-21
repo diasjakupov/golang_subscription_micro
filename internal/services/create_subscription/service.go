@@ -1,6 +1,7 @@
 package createsubscription
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 
 // CreateSubscriptionUseCase defines the interface for creating a subscription.
 type CreateSubscriptionUseCase interface {
-	Execute(req data.CreateSubscriptionRequest) (*data.Subscription, error)
+	Execute(ctx context.Context, req data.CreateSubscriptionRequest) (*data.Subscription, error)
 }
 
 // createSubscriptionUseCase is the concrete implementation of CreateSubscriptionUseCase.
@@ -44,9 +45,9 @@ func NewCreateSubscriptionUseCase(
 // Execute creates a new subscription after verifying that the user is not already subscribed.
 // It processes the payment, retrieves the plan details to set the subscription duration, saves the subscription,
 // associates the payment with the subscription, and publishes an event.
-func (uc *createSubscriptionUseCase) Execute(req data.CreateSubscriptionRequest) (*data.Subscription, error) {
+func (uc *createSubscriptionUseCase) Execute(ctx context.Context, req data.CreateSubscriptionRequest) (*data.Subscription, error) {
 	// Check if an active subscription already exists.
-	if existingSub, err := uc.repo.GetActiveSubscription(req.UserID); err == nil && existingSub != nil {
+	if existingSub, err := uc.repo.GetActiveSubscription(ctx, req.UserID); err == nil && existingSub != nil {
 		return nil, errors.New("already subscribed")
 	}
 
@@ -57,7 +58,7 @@ func (uc *createSubscriptionUseCase) Execute(req data.CreateSubscriptionRequest)
 	}
 
 	// Retrieve plan details to determine subscription duration.
-	plan, err := uc.planRepo.GetPlanByID(req.PlanID)
+	plan, err := uc.planRepo.GetPlanByID(ctx, req.PlanID)
 	if err != nil {
 		return nil, errors.New("failed to fetch plan details: " + err.Error())
 	}
@@ -78,7 +79,7 @@ func (uc *createSubscriptionUseCase) Execute(req data.CreateSubscriptionRequest)
 		AutoRenew: true,
 	}
 
-	if err := uc.repo.SaveSubscription(sub); err != nil {
+	if err := uc.repo.SaveSubscription(ctx, sub); err != nil {
 		return nil, errors.New("failed to create subscription: " + err.Error())
 	}
 

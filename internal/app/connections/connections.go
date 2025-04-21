@@ -24,7 +24,7 @@ func (c *Connections) Close() {
 // BuildPostgresDSN creates a DSN string for the PostgreSQL connection.
 func BuildPostgresDSN(cfg config.DBConfig) string {
 	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=Asia/Shanghai",
+		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=Asia/Almaty",
 		cfg.Host,
 		cfg.User,
 		cfg.Password,

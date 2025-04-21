@@ -1,12 +1,13 @@
 package checksubscription
 
 import (
+	"context"
 	"subscriptions/internal/data"
 	repository "subscriptions/internal/repository/subscriptions"
 )
 
 type CheckSubscriptionUseCase interface {
-	Execute(userID string) (*data.Subscription, error)
+	Execute(ctx context.Context, userID string) (*data.Subscription, error)
 }
 
 type checkSubscriptionUseCase struct {
@@ -17,6 +18,6 @@ func NewCheckSubscriptionUseCase(repo repository.SubscriptionRepository) CheckSu
 	return &checkSubscriptionUseCase{repo: repo}
 }
 
-func (uc *checkSubscriptionUseCase) Execute(userID string) (*data.Subscription, error) {
-	return uc.repo.GetActiveSubscription(userID)
+func (uc *checkSubscriptionUseCase) Execute(ctx context.Context, userID string) (*data.Subscription, error) {
+	return uc.repo.GetActiveSubscription(ctx, userID)
 }

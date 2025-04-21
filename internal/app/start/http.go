@@ -42,7 +42,7 @@ func HTTP(conn *connections.Connections, cfg *config.HTTPServerConfig) {
 	createUC := createsubscription.NewCreateSubscriptionUseCase(repo, paymentService, messageQueue, planRepo)
 	checkUC := checksubscription.NewCheckSubscriptionUseCase(repo)
 	cancelUC := cancelsubscription.NewCancelSubscriptionUseCase(repo, messageQueue)
-	renewUC := renewsubscription.NewRenewSubscriptionUseCase(repo, paymentService, messageQueue)
+	renewUC := renewsubscription.NewRenewSubscriptionUseCase(repo, planRepo, paymentService, messageQueue)
 	getPlansUC := plans.NewGetSubscriptionPlansUseCase(planRepo)
 
 	// Set up the HTTP handler with all use cases

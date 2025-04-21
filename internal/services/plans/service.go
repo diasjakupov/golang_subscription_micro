@@ -1,12 +1,13 @@
 package plans
 
 import (
+	"context"
 	"subscriptions/internal/data"
 	repository "subscriptions/internal/repository/plans"
 )
 
 type GetSubscriptionPlansUseCase interface {
-	Execute() ([]data.SubscriptionPlan, error)
+	Execute(ctx context.Context) ([]data.SubscriptionPlan, error)
 }
 
 type getSubscriptionPlansUseCase struct {
@@ -19,6 +20,6 @@ func NewGetSubscriptionPlansUseCase(planRepo repository.PlanRepository) GetSubsc
 	}
 }
 
-func (uc *getSubscriptionPlansUseCase) Execute() ([]data.SubscriptionPlan, error) {
-	return uc.planRepo.GetAllPlans()
+func (uc *getSubscriptionPlansUseCase) Execute(ctx context.Context) ([]data.SubscriptionPlan, error) {
+	return uc.planRepo.GetAllPlans(ctx)
 }

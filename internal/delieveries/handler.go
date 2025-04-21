@@ -51,7 +51,9 @@ func (h *Handler) CreateSubscriptionHandler(c echo.Context) error {
 		return sendErrorResponse(c, http.StatusBadRequest, "invalid request payload")
 	}
 
-	sub, err := h.createUC.Execute(req)
+	ctx := c.Request().Context()
+
+	sub, err := h.createUC.Execute(ctx, req)
 	if err != nil {
 		if err.Error() == "already subscribed" {
 			return sendErrorResponse(c, http.StatusConflict, err.Error())
@@ -68,8 +70,9 @@ func (h *Handler) CheckSubscriptionHandler(c echo.Context) error {
 	if userID == "" {
 		return sendErrorResponse(c, http.StatusBadRequest, "user_id is required")
 	}
+	ctx := c.Request().Context()
 
-	sub, err := h.checkUC.Execute(userID)
+	sub, err := h.checkUC.Execute(ctx, userID)
 	if err != nil {
 		return sendErrorResponse(c, http.StatusNotFound, "no active subscription found")
 	}
@@ -84,7 +87,9 @@ func (h *Handler) CancelSubscriptionHandler(c echo.Context) error {
 		return sendErrorResponse(c, http.StatusBadRequest, "invalid request payload")
 	}
 
-	if err := h.cancelUC.Execute(req.UserID); err != nil {
+	ctx := c.Request().Context()
+
+	if err := h.cancelUC.Execute(ctx, req.UserID); err != nil {
 		return sendErrorResponse(c, http.StatusNotFound, err.Error())
 	}
 
@@ -98,7 +103,9 @@ func (h *Handler) RenewSubscriptionHandler(c echo.Context) error {
 		return sendErrorResponse(c, http.StatusBadRequest, "invalid request payload")
 	}
 
-	if err := h.renewUC.Execute(req); err != nil {
+	ctx := c.Request().Context()
+
+	if err := h.renewUC.Execute(ctx, req); err != nil {
 		return sendErrorResponse(c, http.StatusBadRequest, "renewal failed: "+err.Error())
 	}
 
@@ -107,7 +114,10 @@ func (h *Handler) RenewSubscriptionHandler(c echo.Context) error {
 
 // GetPlansHandler retrieves all subscription plans.
 func (h *Handler) GetPlansHandler(c echo.Context) error {
-	plans, err := h.getPlansUC.Execute()
+
+	ctx := c.Request().Context()
+
+	plans, err := h.getPlansUC.Execute(ctx)
 	if err != nil {
 		return sendErrorResponse(c, http.StatusInternalServerError, "failed to retrieve plans: "+err.Error())
 	}

@@ -1,6 +1,7 @@
 package cancelsubscription
 
 import (
+	"context"
 	"errors"
 	repository "subscriptions/internal/repository/subscriptions"
 	messagequeue "subscriptions/internal/services/message_queue"
@@ -8,7 +9,7 @@ import (
 )
 
 type CancelSubscriptionUseCase interface {
-	Execute(userID string) error
+	Execute(ctx context.Context, userID string) error
 }
 
 type cancelSubscriptionUseCase struct {
@@ -20,8 +21,8 @@ func NewCancelSubscriptionUseCase(repo repository.SubscriptionRepository, mq mes
 	return &cancelSubscriptionUseCase{repo: repo, messageQueue: mq}
 }
 
-func (uc *cancelSubscriptionUseCase) Execute(userID string) error {
-	sub, err := uc.repo.GetActiveSubscription(userID)
+func (uc *cancelSubscriptionUseCase) Execute(ctx context.Context, userID string) error {
+	sub, err := uc.repo.GetActiveSubscription(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -29,7 +30,7 @@ func (uc *cancelSubscriptionUseCase) Execute(userID string) error {
 	sub.Status = "cancelled"
 	sub.CancelledAt = &now
 	sub.UpdatedAt = now
-	if err := uc.repo.UpdateSubscription(sub); err != nil {
+	if err := uc.repo.UpdateSubscription(ctx, sub); err != nil {
 		return errors.New("failed to cancel subscription")
 	}
 	uc.messageQueue.Publish("SubscriptionCancelled", sub)

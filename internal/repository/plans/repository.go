@@ -1,6 +1,7 @@
 package plans
 
 import (
+	"context"
 	"subscriptions/internal/app/connections"
 	"subscriptions/internal/data"
 
@@ -9,8 +10,8 @@ import (
 
 // PlanRepository defines the interface for subscription plan data operations.
 type PlanRepository interface {
-	GetAllPlans() ([]data.SubscriptionPlan, error)
-	GetPlanByID(id string) (*data.SubscriptionPlan, error)
+	GetAllPlans(ctx context.Context) ([]data.SubscriptionPlan, error)
+	GetPlanByID(ctx context.Context, d string) (*data.SubscriptionPlan, error)
 }
 
 // DBPlanRepository implements PlanRepository using a GORM database connection.
@@ -26,9 +27,9 @@ func NewDBPlanRepository(conn *connections.Connections) *DBPlanRepository {
 }
 
 // GetAllPlans retrieves all available subscription plans from the database.
-func (repo *DBPlanRepository) GetAllPlans() ([]data.SubscriptionPlan, error) {
+func (repo *DBPlanRepository) GetAllPlans(ctx context.Context) ([]data.SubscriptionPlan, error) {
 	var plans []data.SubscriptionPlan
-	result := repo.db.Find(&plans)
+	result := repo.db.WithContext(ctx).Find(&plans)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -37,9 +38,9 @@ func (repo *DBPlanRepository) GetAllPlans() ([]data.SubscriptionPlan, error) {
 
 // GetPlanByID retrieves a subscription plan with the specified id from the database.
 // It returns an error if no plan is found.
-func (repo *DBPlanRepository) GetPlanByID(id string) (*data.SubscriptionPlan, error) {
+func (repo *DBPlanRepository) GetPlanByID(ctx context.Context, id string) (*data.SubscriptionPlan, error) {
 	var plan data.SubscriptionPlan
-	result := repo.db.First(&plan, "id = ?", id)
+	result := repo.db.WithContext(ctx).First(&plan, "id = ?", id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
