@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8082:8080"
+    container_name: subscription_svc
     environment:
       HTTP_SERVER_HOST: ${HTTP_SERVER_HOST}
       HTTP_SERVER_PORT: ${HTTP_SERVER_PORT}
@@ -16,8 +17,11 @@ services:
       DB_USER:          ${DB_USER}
       DB_PASSWORD:      ${DB_PASSWORD}
       DB_NAME:          ${DB_NAME}
+    networks:
+      - app_shared_net
     depends_on:
       - database
+
 
   database:
     image: postgres:13-alpine
@@ -26,7 +30,11 @@ services:
       POSTGRES_USER:     ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB:       ${DB_NAME}
-    ports:
-      - "5432:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app_shared_net
+
+networks:
+  app_shared_net:
+    external: true

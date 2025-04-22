@@ -2,7 +2,6 @@ package plans
 
 import (
 	"context"
-	"subscriptions/internal/app/connections"
 	"subscriptions/internal/data"
 
 	"gorm.io/gorm"
@@ -20,9 +19,9 @@ type DBPlanRepository struct {
 }
 
 // NewDBPlanRepository initializes a new repository using a real database connection from the connections package.
-func NewDBPlanRepository(conn *connections.Connections) *DBPlanRepository {
+func NewDBPlanRepository(conn *gorm.DB) *DBPlanRepository {
 	return &DBPlanRepository{
-		db: conn.DB,
+		db: conn,
 	}
 }
 

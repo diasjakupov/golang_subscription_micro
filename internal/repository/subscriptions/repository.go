@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"subscriptions/internal/app/connections"
 	"subscriptions/internal/data"
 
 	"gorm.io/gorm"
@@ -26,9 +25,9 @@ type DBSubscriptionRepository struct {
 }
 
 // NewDBSubscriptionRepository initializes a new repository using the provided database connection.
-func NewDBSubscriptionRepository(conn *connections.Connections) *DBSubscriptionRepository {
+func NewDBSubscriptionRepository(conn *gorm.DB) *DBSubscriptionRepository {
 	return &DBSubscriptionRepository{
-		db: conn.DB,
+		db: conn,
 	}
 }
 

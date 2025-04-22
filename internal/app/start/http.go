@@ -31,8 +31,8 @@ func HTTP(conn *connections.Connections, cfg *config.HTTPServerConfig) {
 	})
 
 	// Initialize repositories with the database connection.
-	repo := subRepository.NewDBSubscriptionRepository(conn)
-	planRepo := planRepository.NewDBPlanRepository(conn)
+	repo := subRepository.NewDBSubscriptionRepository(conn.DB)
+	planRepo := planRepository.NewDBPlanRepository(conn.DB)
 
 	// Initialize services
 	paymentService := &payment.DummyPaymentService{}
@@ -43,13 +43,14 @@ func HTTP(conn *connections.Connections, cfg *config.HTTPServerConfig) {
 	checkUC := checksubscription.NewCheckSubscriptionUseCase(repo)
 	cancelUC := cancelsubscription.NewCancelSubscriptionUseCase(repo, messageQueue)
 	renewUC := renewsubscription.NewRenewSubscriptionUseCase(repo, planRepo, paymentService, messageQueue)
+
 	getPlansUC := plans.NewGetSubscriptionPlansUseCase(planRepo)
 
 	// Set up the HTTP handler with all use cases
 	handler := delieveries.NewHandler(createUC, checkUC, cancelUC, renewUC, getPlansUC)
 
 	// Create the router and start the HTTP server
-	router := delieveries.NewRouter(handler)
+	router := delieveries.NewRouter(conn.HTTPClient, handler)
 	addr := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	log.Printf("Starting HTTP server on %s", addr)
 
