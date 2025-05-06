@@ -25,6 +25,7 @@ services:
 
   database:
     image: postgres:13-alpine
+    container_name: subscription_postgres
     restart: always
     environment:
       POSTGRES_USER:     ${DB_USER}
